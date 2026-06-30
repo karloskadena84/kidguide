@@ -1,0 +1,82 @@
+// ─────────────────────────────────────────────────────────────
+// KidGuide – Design Tokens (Warm Companion System)
+// Basado en DESIGN.md — modifica aquí para cambiar toda la app
+// ─────────────────────────────────────────────────────────────
+
+// ── Paleta principal ──────────────────────────────────────────
+$primary:           #630ed4;
+$primary-container: #7c3aed;
+$on-primary:        #ffffff;
+$on-primary-container: #ede0ff;
+$inverse-primary:   #d2bbff;
+
+// ── Secondario (Amber) ────────────────────────────────────────
+$secondary:           #855300;
+$secondary-container: #fea619;
+$on-secondary:        #ffffff;
+$on-secondary-container: #684000;
+
+// ── Superficies ───────────────────────────────────────────────
+$bg:                    #fef7ff;   // surface-warm / background
+$surface-warm:          #FAF9F6;
+$surface:               #f3ebfa;   // surface-container
+$surface-low:           #f9f1ff;   // surface-container-low
+$surface-high:          #ede5f4;   // surface-container-high
+$surface-highest:       #e8dfee;
+$white:                 #ffffff;   // surface-container-lowest
+
+// ── Texto ─────────────────────────────────────────────────────
+$text:    #1d1a24;   // on-surface
+$muted:   #4a4455;   // on-surface-variant
+$subtle:  #7b7487;   // outline
+$border:  #ccc3d8;   // outline-variant
+
+// ── Acentos funcionales ───────────────────────────────────────
+$accent-green: #10B981;
+$accent-red:   #EF4444;
+$accent-blue:  #3B82F6;
+
+// ── Categorías (mantenemos identidad visual) ──────────────────
+$cat-parques:      #059669;
+$cat-granjas:      #D97706;
+$cat-restaurantes: #DC2626;
+$cat-centros:      #2563EB;
+$cat-actividades:  #DB2777;
+
+// ── Aliases de compatibilidad ─────────────────────────────────
+$brand:        $primary-container;
+$brand-dark:   $primary;
+$brand-light:  #EDE9FE;
+$brand-accent: #A855F7;
+
+// ── Tipografía ────────────────────────────────────────────────
+$font-display: 'Quicksand', sans-serif;
+$font-body:    'Plus Jakarta Sans', sans-serif;
+
+// ── Radios (Warm Companion — sin aristas) ─────────────────────
+$r-sm:   4px;    // rounded-sm
+$r-md:   8px;    // rounded
+$r-lg:   12px;   // rounded-md
+$r-xl:   16px;   // rounded-lg
+$r-2xl:  24px;   // rounded-xl — cards principales
+$r-pill: 9999px; // rounded-full
+
+// ── Sombras con tinte primario ────────────────────────────────
+$shadow-card:  0 2px 20px rgba(99, 14, 212, 0.08);
+$shadow-hover: 0 8px 30px rgba(99, 14, 212, 0.18);
+$shadow-input: 0 2px 12px rgba(99, 14, 212, 0.10);
+
+// ── Espaciado ─────────────────────────────────────────────────
+$container-max:  1280px;
+$gutter:         1.5rem;
+$margin-mobile:  1rem;
+$margin-desktop: 2.5rem;
+
+// ── Breakpoints ───────────────────────────────────────────────
+$bp-md: 640px;
+$bp-lg: 1024px;
+
+// ── Transiciones ──────────────────────────────────────────────
+$t-fast:   all 0.15s ease;
+$t-normal: all 0.2s ease;
+$t-slow:   all 0.3s ease;

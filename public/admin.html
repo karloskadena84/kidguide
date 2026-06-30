@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KidGuide — Extractor de Lugares</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F8F6FF; min-height: 100vh; padding: 2rem; color: #1d1a24; }
+  .wrap { max-width: 800px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 2rem; }
+  header h1 { font-size: 1.6rem; font-weight: 700; color: #630ed4; margin-bottom: 4px; }
+  header p  { font-size: .9rem; color: #7b7487; }
+  .card { background: #fff; border-radius: 16px; padding: 1.5rem; border: 1px solid #e8dfee; margin-bottom: 1rem; }
+  .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: #1d1a24; }
+  label { display: block; font-size: .8rem; font-weight: 600; color: #4a4455; margin-bottom: 4px; }
+  input, select, textarea {
+    width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid #e8dfee;
+    font-size: .9rem; font-family: inherit; outline: none; transition: border .15s;
+    background: #fff; color: #1d1a24;
+  }
+  input:focus, select:focus, textarea:focus { border-color: #7c3aed; }
+  textarea { resize: vertical; min-height: 100px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .field { margin-bottom: 12px; }
+  .btn {
+    width: 100%; padding: 12px; border-radius: 10px; border: none; background: #7c3aed;
+    color: #fff; font-size: .95rem; font-weight: 700; cursor: pointer; transition: background .15s;
+    font-family: inherit;
+  }
+  .btn:hover { background: #630ed4; }
+  .btn:disabled { background: #c4b5fd; cursor: not-allowed; }
+  .btn-secondary { background: #EDE9FE; color: #7c3aed; }
+  .btn-secondary:hover { background: #DDD6FE; }
+  .status { border-radius: 10px; padding: 12px 14px; font-size: .85rem; margin-top: 1rem; display: none; }
+  .status.ok   { background: #D1FAE5; color: #065f46; }
+  .status.err  { background: #FEE2E2; color: #991b1b; }
+  .status.info { background: #DBEAFE; color: #1e40af; }
+  #output-card { display: none; }
+  .output-box {
+    background: #1d1a24; color: #a8ff78; border-radius: 10px; padding: 1rem;
+    font-family: 'SF Mono', monospace; font-size: .78rem; line-height: 1.6;
+    white-space: pre-wrap; overflow-x: auto; max-height: 420px; overflow-y: auto;
+  }
+  .copy-btn { float: right; padding: 4px 14px; border-radius: 8px; border: none; background: #7c3aed; color: #fff; font-size: .8rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .copy-btn:hover { background: #630ed4; }
+  .review-list { margin-top: 1rem; }
+  .review-item { display: flex; align-items: center; gap: 8px; font-size: .85rem; color: #4a4455; padding: 6px 0; border-bottom: 1px solid #f3ebfa; }
+  .review-item:last-child { border: none; }
+  .dot-ok   { width: 8px; height: 8px; border-radius: 50%; background: #10B981; flex-shrink: 0; }
+  .dot-warn { width: 8px; height: 8px; border-radius: 50%; background: #F59E0B; flex-shrink: 0; }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; margin-right: 8px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .tab-row { display: flex; gap: 6px; margin-bottom: 1rem; }
+  .tab { padding: 6px 16px; border-radius: 9999px; border: 1.5px solid #e8dfee; background: transparent; font-size: .85rem; font-weight: 600; cursor: pointer; color: #7b7487; font-family: inherit; transition: all .12s; }
+  .tab.on { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>🗺️ KidGuide — Extractor de Lugares</h1>
+    <p>Ingresa una URL o texto y Claude extrae todos los campos automáticamente</p>
+  </header>
+
+  <div class="card">
+    <h2>⚙️ Configuración</h2>
+    <div class="row">
+      <div class="field">
+        <label>Worker URL</label>
+        <input id="worker-url" type="text" value="https://guiame-proxy.karloskadena.workers.dev" placeholder="https://tu-worker.workers.dev">
+      </div>
+      <div class="field">
+        <label>Ciudad</label>
+        <select id="city">
+          <option value="medellin">Medellín</option>
+          <option value="bogota">Bogotá</option>
+          <option value="cali">Cali</option>
+          <option value="cartagena">Cartagena</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Próximo ID disponible</label>
+      <input id="next-id" type="number" value="56" placeholder="56">
+      <small style="font-size:.75rem;color:#7b7487;margin-top:4px;display:block">
+        Medellín: desde 56 · Bogotá: desde 1055 · Cali: desde 2008 · Cartagena: desde 3010
+      </small>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📥 Fuente del lugar</h2>
+    <div class="tab-row">
+      <button class="tab on" onclick="switchTab('url', this)">🌐 URL</button>
+      <button class="tab" onclick="switchTab('text', this)">📝 Texto</button>
+    </div>
+
+    <div id="tab-url">
+      <div class="field">
+        <label>URL del lugar (página oficial, TripAdvisor, etc.)</label>
+        <input id="place-url" type="url" placeholder="https://www.jardinbotanico.org.co">
+      </div>
+    </div>
+
+    <div id="tab-text" style="display:none">
+      <div class="field">
+        <label>Texto con información del lugar</label>
+        <textarea id="place-text" placeholder="Granja La Montaña, ubicada en Guarne, Antioquia. Abierta sábados y domingos de 9am a 5pm. Entrada $20.000 adultos, $15.000 niños."></textarea>
+      </div>
+    </div>
+
+    <button class="btn" id="extract-btn" onclick="extract()">
+      ✨ Extraer con Claude
+    </button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div class="card" id="output-card">
+    <h2>
+      ✅ Resultado
+      <button class="copy-btn" onclick="copyOutput()">Copiar</button>
+    </h2>
+
+    <div class="review-list" id="review-list"></div>
+
+    <div style="margin-top: 1rem;">
+      <div class="output-box" id="output-box"></div>
+    </div>
+
+    <div style="margin-top: 1rem; display: flex; gap: 8px;">
+      <button class="btn btn-secondary" onclick="copyOutput()">📋 Copiar código JS</button>
+      <button class="btn" onclick="extract()" style="flex:0;width:auto;padding:12px 20px">🔄 Otro lugar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentTab = 'url'
+
+function switchTab(tab, btn) {
+  currentTab = tab
+  document.getElementById('tab-url').style.display  = tab === 'url'  ? '' : 'none'
+  document.getElementById('tab-text').style.display = tab === 'text' ? '' : 'none'
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'))
+  btn.classList.add('on')
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('status')
+  el.textContent = msg
+  el.className = `status ${type}`
+  el.style.display = 'block'
+}
+
+async function extract() {
+  const workerUrl = document.getElementById('worker-url').value.trim()
+  const city      = document.getElementById('city').value
+  const nextId    = parseInt(document.getElementById('next-id').value) || 9001
+  const url       = document.getElementById('place-url').value.trim()
+  const text      = document.getElementById('place-text').value.trim()
+
+  if (!workerUrl) { showStatus('Ingresa la URL del worker', 'err'); return }
+  if (currentTab === 'url'  && !url)  { showStatus('Ingresa una URL del lugar', 'err'); return }
+  if (currentTab === 'text' && !text) { showStatus('Ingresa el texto del lugar', 'err'); return }
+
+  const btn = document.getElementById('extract-btn')
+  btn.innerHTML = '<span class="spinner"></span> Procesando con Claude...'
+  btn.disabled = true
+  showStatus('Claude está analizando el contenido...', 'info')
+  document.getElementById('output-card').style.display = 'none'
+
+  try {
+    const body = { city, nextId }
+    if (currentTab === 'url')  body.url  = url
+    if (currentTab === 'text') body.text = text
+
+    const res  = await fetch(`${workerUrl}/extract`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body),
+    })
+    const data = await res.json()
+
+    if (!res.ok || !data.ok) {
+      showStatus('❌ ' + (data.error || 'Error') + (data.detail ? ': ' + data.detail : ''), 'err')
+      if (data.raw) {
+        console.log('Raw output:', data.raw)
+        showStatus('❌ ' + (data.error || 'Error') + ' — Raw: ' + data.raw.slice(0, 200), 'err')
+      }
+      return
+    }
+
+    renderOutput(data.place)
+    showStatus('✅ Extracción completada — revisa los campos marcados en amarillo antes de agregar', 'ok')
+    document.getElementById('output-card').style.display = 'block'
+    document.getElementById('next-id').value = nextId + 1
+
+  } catch (err) {
+    showStatus('❌ No se pudo conectar al worker: ' + err.message, 'err')
+  } finally {
+    btn.innerHTML = '✨ Extraer con Claude'
+    btn.disabled = false
+  }
+}
+
+function renderOutput(place) {
+  const reviews = [
+    { key: 'name',   label: 'Nombre extraído',     ok: !!place.name },
+    { key: 'cat',    label: 'Categoría asignada',   ok: ['parques','granjas','restaurantes','centros','actividades'].includes(place.cat) },
+    { key: 'desc',   label: 'Descripción generada', ok: place.desc?.length > 10 },
+    { key: 'price',  label: 'Precio detectado',     ok: !!place.price?.label },
+    { key: 'sched',  label: 'Horario detectado',    ok: !!place.sched },
+    { key: 'coords', label: 'coords → completar en Google Maps', ok: false },
+    { key: 'emoji',  label: 'emoji → elegir representativo',     ok: place.emoji !== '📍' },
+    { key: 'stars',  label: 'stars → ajustar de 1 a 5',          ok: false },
+    { key: 'tip',    label: 'tip → agregar consejo personal',     ok: false },
+  ]
+
+  document.getElementById('review-list').innerHTML = reviews.map(r => `
+    <div class="review-item">
+      <span class="${r.ok ? 'dot-ok' : 'dot-warn'}"></span>
+      <span><strong>${r.key}:</strong> ${r.label}</span>
+    </div>
+  `).join('')
+
+  const p = place
+  const jsCode = `  {
+    id: ${p.id}, name: '${esc(p.name)}', cat: '${p.cat}', emoji: '${p.emoji}',
+    zone: '${esc(p.zone)}', age: '${p.age}', days: ${JSON.stringify(p.days)},
+    coords: [0, 0],  // ← completar con Google Maps
+    address: '${esc(p.address)}',
+    price: { free: ${p.price.free}, label: '${p.price.label}', note: '${p.price.note || ''}' },
+    tags: ${JSON.stringify(p.tags)},
+    sched: '${esc(p.sched)}',
+    desc: '${esc(p.desc)}',
+    tip: '${esc(p.tip)}',
+    stars: ${p.stars},
+  },`
+
+  document.getElementById('output-box').textContent = jsCode
+}
+
+function esc(str) {
+  return (str || '').replace(/'/g, "\\'")
+}
+
+function copyOutput() {
+  const text = document.getElementById('output-box').textContent
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target
+    const orig = btn.textContent
+    btn.textContent = '✅ Copiado'
+    setTimeout(() => btn.textContent = orig, 2000)
+  })
+}
+</script>
+</body>
+</html>
