@@ -1,5 +1,5 @@
-import { ref, computed } from 'vue'
-import { getPlacesForCity } from '@/data/index'
+import { ref, computed, watchEffect } from 'vue'
+import { fetchPlacesForCity } from '@/services/placesApi'
 
 const TODAY = new Date().getDay()
 
@@ -40,9 +40,26 @@ export function usePlaces(cityRef) {
   const todayOnly = ref(false)
   const freeOnly  = ref(false)
 
-  const cityPlaces = computed(() =>
-    getPlacesForCity(cityRef?.value || 'medellin')
-  )
+  // --- NUEVO: los lugares ahora vienen de la API (Railway + Postgres) ---
+  const cityPlaces = ref([])
+  const loading     = ref(false)
+  const loadError   = ref(null)
+
+  watchEffect(async () => {
+    const city = cityRef?.value || 'medellin'
+    loading.value = true
+    loadError.value = null
+    try {
+      cityPlaces.value = await fetchPlacesForCity(city)
+    } catch (err) {
+      console.error('Error cargando lugares:', err)
+      loadError.value = err.message
+      cityPlaces.value = []
+    } finally {
+      loading.value = false
+    }
+  })
+  // --- fin de lo nuevo ---
 
   const filtered = computed(() => cityPlaces.value.filter(p => {
     if (activecat.value !== 'all' && p.cat !== activecat.value) return false
@@ -94,5 +111,6 @@ export function usePlaces(cityRef) {
     totalFree, todayCount, totalPlaces,
     clearFilters, hasFilters, TODAY,
     dailyShuffled, todayFeaturedCard,
+    loading, loadError, // nuevo: útil para mostrar spinners/errores en la UI
   }
 }

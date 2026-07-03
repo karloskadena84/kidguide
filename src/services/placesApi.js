@@ -1,0 +1,76 @@
+import { API_BASE_URL } from '@/config/api'
+
+const cache = new Map() // evita re-fetch al cambiar de ciudad y volver
+
+export async function fetchPlacesForCity(cityId) {
+  if (cache.has(cityId)) return cache.get(cityId)
+
+  const res = await fetch(`${API_BASE_URL}/api/places?city=${cityId}`)
+  if (!res.ok) throw new Error(`No se pudieron cargar los lugares de ${cityId}`)
+
+  const data = await res.json()
+  cache.set(cityId, data)
+  return data
+}
+
+export function clearPlacesCache() {
+  cache.clear()
+}
+
+// --- Dashboard admin (requieren token) ---
+
+function authHeaders() {
+  const token = localStorage.getItem('kidguide_admin_token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
+export async function login(email, password) {
+  const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+  if (!res.ok) throw new Error('Credenciales inválidas')
+  return res.json()
+}
+
+export async function fetchAllPlacesAdmin() {
+  const res = await fetch(`${API_BASE_URL}/api/places/admin/all`, { headers: authHeaders() })
+  if (!res.ok) throw new Error('No autorizado')
+  return res.json()
+}
+
+export async function createPlace(place) {
+  const res = await fetch(`${API_BASE_URL}/api/places`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(place),
+  })
+  if (!res.ok) throw new Error('No se pudo crear el lugar')
+  return res.json()
+}
+
+export async function updatePlace(id, place) {
+  const res = await fetch(`${API_BASE_URL}/api/places/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(place),
+  })
+  if (!res.ok) throw new Error('No se pudo actualizar el lugar')
+  return res.json()
+}
+
+export async function deletePlace(id) {
+  const res = await fetch(`${API_BASE_URL}/api/places/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  })
+  if (!res.ok) throw new Error('No se pudo eliminar el lugar')
+  return res.json()
+}
+
+export async function fetchReports() {
+  const res = await fetch(`${API_BASE_URL}/api/reports`, { headers: authHeaders() })
+  if (!res.ok) throw new Error('No se pudieron cargar los reportes')
+  return res.json()
+}
