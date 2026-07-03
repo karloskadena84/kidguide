@@ -133,6 +133,7 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
+import { submitReport } from '@/services/placesApi'
 
 // ── Constantes ────────────────────────────────
 const WORKER_URL  = import.meta.env.VITE_WORKER_URL
@@ -297,7 +298,7 @@ const submit = async () => {
     const enriched = await enrichWithClaude(reportText, topCategory, valid)
     aiResult.value = enriched
 
-    // ── Paso 3: Persistir en Discord via Worker ───────────
+    // ── Paso 3: Persistir en Discord via Worker Y en la base de datos ───
     if (WORKER_URL) {
       await fetch(`${WORKER_URL}/report`, {
         method:  'POST',
@@ -313,6 +314,14 @@ const submit = async () => {
         }),
       })
     }
+
+    // Guardar también en la base de datos, para que aparezca en el dashboard admin
+    submitReport({
+      type: form.type,
+      placeName: props.place.name,
+      message: `${form.correct}${form.source ? ` (Fuente: ${form.source})` : ''}`,
+      contactInfo: null,
+    }).catch((err) => console.error('No se pudo guardar el reporte en la base de datos:', err))
 
     phase.value = 'done'
 
@@ -336,6 +345,15 @@ const submit = async () => {
         }),
       }).catch(() => {})
     }
+
+    // Igual intentar guardar en la base de datos
+    submitReport({
+      type: form.type,
+      placeName: props.place.name,
+      message: `${form.correct}${form.source ? ` (Fuente: ${form.source})` : ''}`,
+      contactInfo: null,
+    }).catch(() => {})
+
     phase.value = 'done'
   }
 }

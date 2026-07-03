@@ -17,6 +17,17 @@ export function clearPlacesCache() {
   cache.clear()
 }
 
+// Envía un reporte desde el sitio público (no requiere sesión de admin)
+export async function submitReport(report) {
+  const res = await fetch(`${API_BASE_URL}/api/reports`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(report),
+  })
+  if (!res.ok) throw new Error('No se pudo enviar el reporte')
+  return res.json()
+}
+
 // --- Dashboard admin (requieren token) ---
 
 function authHeaders() {
