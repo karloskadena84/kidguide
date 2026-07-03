@@ -56,7 +56,7 @@ async function submit() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(160deg, #505ACD 0%, #7C7FE0 100%);
+  background: linear-gradient(160deg, #630ED4 0%, #9B4DFF 100%);
 }
 
 .login-card {
@@ -67,11 +67,11 @@ async function submit() {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  box-shadow: 0 20px 60px rgba(26, 18, 51, 0.3);
 }
 
 .logo { font-size: 40px; text-align: center; }
-h1 { margin: 0; text-align: center; font-size: 22px; }
+h1 { margin: 0; text-align: center; font-size: 22px; font-weight: 800; }
 .subtitle { margin: 0 0 12px; text-align: center; color: #6B6B85; font-size: 13px; }
 
 label {
@@ -79,7 +79,7 @@ label {
   flex-direction: column;
   gap: 6px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: #333;
 }
 
@@ -90,18 +90,23 @@ input {
   font-size: 14px;
   font-family: inherit;
 }
+input:focus {
+  outline: none;
+  border-color: #630ED4;
+  box-shadow: 0 0 0 3px #F3ECFC;
+}
 
 button {
   margin-top: 8px;
   padding: 12px;
   border: none;
   border-radius: 10px;
-  background: #505ACD;
+  background: #630ED4;
   color: white;
   font-weight: 700;
   font-size: 14px;
 }
-
+button:hover:not(:disabled) { background: #4E0AA8; }
 button:disabled { opacity: 0.6; }
 
 .error {

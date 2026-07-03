@@ -149,7 +149,7 @@ async function submit() {
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(26,26,46,0.5);
+  background: rgba(26, 18, 51, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -157,15 +157,16 @@ async function submit() {
   z-index: 50;
 }
 .modal {
-  background: white;
-  border-radius: 16px;
+  background: var(--surface, white);
+  border-radius: 18px;
   padding: 28px;
   width: 100%;
   max-width: 640px;
   max-height: 90vh;
   overflow-y: auto;
+  box-shadow: 0 24px 60px rgba(26, 18, 51, 0.25);
 }
-h2 { margin: 0 0 16px; font-size: 18px; }
+h2 { margin: 0 0 16px; font-size: 19px; font-weight: 800; }
 
 .grid {
   display: grid;
@@ -179,16 +180,21 @@ label {
   flex-direction: column;
   gap: 5px;
   font-size: 12px;
-  font-weight: 600;
-  color: #333;
+  font-weight: 700;
+  color: var(--text, #333);
 }
 
 input, select, textarea {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #E3E3EF;
+  padding: 9px 11px;
+  border-radius: 9px;
+  border: 1px solid var(--border, #E3E3EF);
   font-family: inherit;
   font-size: 13px;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary, #630ED4);
+  box-shadow: 0 0 0 3px var(--primary-tint, #F3ECFC);
 }
 
 .footer {
@@ -199,10 +205,10 @@ input, select, textarea {
 }
 
 .primary {
-  background: #505ACD;
+  background: var(--primary, #630ED4);
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 10px 22px;
   border-radius: 10px;
   font-weight: 700;
   font-size: 13px;
@@ -211,12 +217,12 @@ input, select, textarea {
 
 .ghost {
   background: white;
-  border: 1px solid #E3E3EF;
+  border: 1px solid var(--border, #E3E3EF);
   padding: 10px 20px;
   border-radius: 10px;
   font-weight: 600;
   font-size: 13px;
 }
 
-.error { color: #DC2626; font-size: 13px; }
+.error { color: var(--danger, #DC2626); font-size: 13px; }
 </style>

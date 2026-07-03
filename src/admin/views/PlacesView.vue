@@ -3,30 +3,51 @@
     <div class="header-row">
       <div>
         <h1>Lugares</h1>
-        <p class="muted">{{ places.length }} lugares en total</p>
+        <p class="stat-line" v-if="!loading">
+          <strong>{{ filteredPlaces.length }}</strong> lugares
+          <span class="dot">·</span>
+          <strong>{{ freeCount }}</strong> gratuitos
+          <span class="dot">·</span>
+          <strong>{{ featuredCount }}</strong> destacados
+          <span class="dot">·</span>
+          <strong>{{ inactiveCount }}</strong> inactivos
+        </p>
       </div>
       <button class="primary" @click="openCreate">+ Nuevo lugar</button>
     </div>
 
+    <!-- Pestañas de ciudad, mismo lenguaje visual del sitio público -->
+    <div class="city-tabs">
+      <button
+        v-for="c in cityTabs"
+        :key="c.value"
+        :class="{ active: cityFilter === c.value }"
+        @click="cityFilter = c.value"
+      >
+        {{ c.emoji }} {{ c.label }}
+        <span class="count">{{ countByCity(c.value) }}</span>
+      </button>
+    </div>
+
     <div class="filters">
-      <select v-model="cityFilter">
-        <option value="">Todas las ciudades</option>
-        <option value="medellin">Medellín</option>
-        <option value="bogota">Bogotá</option>
-        <option value="cali">Cali</option>
-        <option value="cartagena">Cartagena</option>
-      </select>
-      <input v-model="search" type="text" placeholder="Buscar por nombre…" />
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input v-model="search" type="text" placeholder="Buscar por nombre…" />
+      </div>
     </div>
 
     <p v-if="loading" class="muted">Cargando…</p>
     <p v-if="error" class="error">{{ error }}</p>
 
-    <table v-if="!loading" class="table">
+    <div v-if="!loading && filteredPlaces.length === 0" class="empty">
+      <p>No hay lugares que coincidan con este filtro.</p>
+      <button class="ghost-link" @click="clearFilters">Limpiar filtros</button>
+    </div>
+
+    <table v-if="!loading && filteredPlaces.length" class="table">
       <thead>
         <tr>
-          <th>Nombre</th>
-          <th>Ciudad</th>
+          <th>Lugar</th>
           <th>Categoría</th>
           <th>Activo</th>
           <th>Destacado</th>
@@ -35,17 +56,28 @@
       </thead>
       <tbody>
         <tr v-for="p in filteredPlaces" :key="p.id">
-          <td>{{ p.emoji }} {{ p.name }}</td>
-          <td class="capitalize">{{ p.city }}</td>
-          <td>{{ p.cat }}</td>
+          <td>
+            <div class="place-cell">
+              <span class="emoji-swatch" :style="{ background: categoryMeta(p.cat).bg }">{{ p.emoji || '📍' }}</span>
+              <div>
+                <div class="place-name">{{ p.name }}</div>
+                <div class="place-zone">{{ p.zone }} · {{ cityLabel(p.city) }}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="cat-chip" :style="{ background: categoryMeta(p.cat).bg, color: categoryMeta(p.cat).color }">
+              {{ categoryMeta(p.cat).label }}
+            </span>
+          </td>
           <td>
             <button class="pill" :class="p.active ? 'on' : 'off'" @click="toggleActive(p)">
-              {{ p.active ? 'Activo' : 'Inactivo' }}
+              {{ p.active ? '✓ Activo' : 'Inactivo' }}
             </button>
           </td>
           <td>
-            <button class="pill" :class="p.featured ? 'on' : 'off'" @click="toggleFeatured(p)">
-              {{ p.featured ? 'Sí' : 'No' }}
+            <button class="pill" :class="p.featured ? 'star' : 'off'" @click="toggleFeatured(p)">
+              {{ p.featured ? '★ Sí' : 'No' }}
             </button>
           </td>
           <td class="actions">
@@ -70,6 +102,30 @@ import { ref, computed, onMounted } from 'vue'
 import { fetchAllPlacesAdmin, updatePlace, deletePlace } from '@/services/placesApi'
 import PlaceFormModal from '../components/PlaceFormModal.vue'
 
+const CATEGORY_META = {
+  parques:      { label: 'Parques & Museos',    bg: '#ECFDF3', color: '#067647' },
+  granjas:      { label: 'Granjas & Animales',  bg: '#FFF4E5', color: '#B45309' },
+  restaurantes: { label: 'Restaurantes',        bg: '#FDECEA', color: '#C0392B' },
+  centros:      { label: 'Entretenimiento',     bg: '#F3ECFC', color: '#7C2FD1' },
+  actividades:  { label: 'Actividades',         bg: '#EAF2FF', color: '#1D4ED8' },
+}
+function categoryMeta(cat) {
+  return CATEGORY_META[cat] || { label: cat, bg: '#F0F0F5', color: '#6B6B85' }
+}
+
+const CITY_LABELS = { medellin: 'Medellín', bogota: 'Bogotá', cali: 'Cali', cartagena: 'Cartagena' }
+function cityLabel(city) {
+  return CITY_LABELS[city] || city
+}
+
+const cityTabs = [
+  { value: '', label: 'Todas', emoji: '🗺️' },
+  { value: 'medellin', label: 'Medellín', emoji: '🏙️' },
+  { value: 'bogota', label: 'Bogotá', emoji: '🏔️' },
+  { value: 'cali', label: 'Cali', emoji: '🌴' },
+  { value: 'cartagena', label: 'Cartagena', emoji: '🏖️' },
+]
+
 const places = ref([])
 const loading = ref(true)
 const error = ref('')
@@ -78,6 +134,11 @@ const search = ref('')
 const showForm = ref(false)
 const editingPlace = ref(null)
 
+function countByCity(city) {
+  if (!city) return places.value.length
+  return places.value.filter((p) => p.city === city).length
+}
+
 const filteredPlaces = computed(() =>
   places.value.filter((p) => {
     if (cityFilter.value && p.city !== cityFilter.value) return false
@@ -85,6 +146,10 @@ const filteredPlaces = computed(() =>
     return true
   })
 )
+
+const freeCount = computed(() => filteredPlaces.value.filter((p) => p.priceFree).length)
+const featuredCount = computed(() => filteredPlaces.value.filter((p) => p.featured).length)
+const inactiveCount = computed(() => filteredPlaces.value.filter((p) => !p.active).length)
 
 async function load() {
   loading.value = true
@@ -99,6 +164,11 @@ async function load() {
 }
 
 onMounted(load)
+
+function clearFilters() {
+  search.value = ''
+  cityFilter.value = ''
+}
 
 function openCreate() {
   editingPlace.value = null
@@ -139,70 +209,188 @@ function onSaved() {
   align-items: flex-start;
   margin-bottom: 20px;
 }
-h1 { margin: 0 0 4px; font-size: 24px; }
-.muted { color: #6B6B85; font-size: 13px; margin: 0; }
+h1 { margin: 0 0 6px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+
+.stat-line {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.stat-line strong { color: var(--text); font-weight: 700; }
+.stat-line .dot { margin: 0 6px; opacity: 0.5; }
 
 .primary {
-  background: #505ACD;
+  background: var(--primary);
   color: white;
   border: none;
-  padding: 10px 18px;
+  padding: 11px 20px;
   border-radius: 10px;
   font-weight: 700;
   font-size: 14px;
+  box-shadow: 0 2px 8px rgba(99, 14, 212, 0.25);
+}
+
+/* Pestañas de ciudad */
+.city-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+.city-tabs button {
+  border: none;
+  background: transparent;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: -1px;
+}
+.city-tabs button.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+.city-tabs .count {
+  background: var(--bg);
+  color: var(--text-muted);
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.city-tabs button.active .count {
+  background: var(--primary-tint);
+  color: var(--primary);
 }
 
 .filters {
-  display: flex;
-  gap: 10px;
   margin-bottom: 16px;
 }
-.filters select, .filters input {
-  padding: 9px 12px;
-  border-radius: 8px;
-  border: 1px solid #E3E3EF;
+.search-wrap {
+  position: relative;
+  max-width: 320px;
+}
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%) rotate(90deg);
+  color: var(--text-muted);
+  font-size: 15px;
+}
+.search-wrap input {
+  width: 100%;
+  padding: 10px 12px 10px 34px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
   font-family: inherit;
   font-size: 13px;
+  background: var(--surface);
 }
-.filters input { flex: 1; }
+.search-wrap input:focus {
+  outline: 2px solid var(--primary-tint);
+  border-color: var(--primary);
+}
+
+.empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+}
+.ghost-link {
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 13px;
+  margin-top: 8px;
+}
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  background: white;
-  border-radius: 12px;
+  background: var(--surface);
+  border-radius: 14px;
   overflow: hidden;
-  border: 1px solid #E3E3EF;
+  border: 1px solid var(--border);
 }
 .table th, .table td {
   text-align: left;
-  padding: 12px 14px;
+  padding: 14px;
   font-size: 13px;
-  border-bottom: 1px solid #F0F0F5;
+  border-bottom: 1px solid var(--border);
 }
-.table th { color: #6B6B85; font-weight: 600; background: #FAFAFC; }
-.capitalize { text-transform: capitalize; }
+.table th {
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+}
+.table tbody tr:hover { background: var(--bg); }
+.table tbody tr:last-child td { border-bottom: none; }
+
+.place-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.emoji-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+.place-name { font-weight: 700; color: var(--text); }
+.place-zone { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+.cat-chip {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
 
 .pill {
   border: none;
   border-radius: 20px;
-  padding: 4px 10px;
+  padding: 5px 12px;
   font-size: 12px;
   font-weight: 700;
 }
-.pill.on { background: #D1FAE5; color: #059669; }
-.pill.off { background: #F0F0F5; color: #6B6B85; }
+.pill.on { background: var(--success-tint); color: var(--success); }
+.pill.off { background: #F0F0F5; color: var(--text-muted); }
+.pill.star { background: var(--accent-tint); color: #B45309; }
 
 .actions { display: flex; gap: 8px; }
 .actions button {
-  border: 1px solid #E3E3EF;
+  border: 1px solid var(--border);
   background: white;
   border-radius: 8px;
-  padding: 6px 10px;
+  padding: 6px 12px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
 }
-.actions .danger { color: #DC2626; border-color: #FCA5A5; }
+.actions button:hover { border-color: var(--primary); color: var(--primary); }
+.actions .danger { color: var(--danger); border-color: #F5C6C0; }
+.actions .danger:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-tint); }
 
-.error { color: #DC2626; }
+.muted { color: var(--text-muted); font-size: 13px; }
+.error { color: var(--danger); }
 </style>

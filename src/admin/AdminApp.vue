@@ -68,15 +68,22 @@ function handleLogout() {
 </script>
 
 <style>
+/* Paleta de marca real de KidGuide (la misma del sitio público) */
 :root {
-  --primary: #505ACD;
-  --primary-dark: #3d45a3;
-  --bg: #F7F7FB;
-  --border: #E3E3EF;
-  --text: #1A1A2E;
+  --primary: #630ED4;
+  --primary-dark: #4E0AA8;
+  --primary-tint: #F3ECFC;
+  --accent: #FEA619;
+  --accent-tint: #FFF3E0;
+  --bg: #FAF9FC;
+  --surface: #FFFFFF;
+  --border: #EAE6F5;
+  --text: #1A1233;
   --text-muted: #6B6B85;
   --danger: #DC2626;
-  --success: #059669;
+  --danger-tint: #FDECEA;
+  --success: #16A34A;
+  --success-tint: #ECFDF3;
 }
 
 * { box-sizing: border-box; }
@@ -100,7 +107,7 @@ button {
 
 .sidebar {
   width: 240px;
-  background: white;
+  background: var(--surface);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -112,7 +119,7 @@ button {
   align-items: center;
   gap: 10px;
   padding: 0 8px 24px;
-  font-weight: 700;
+  font-weight: 800;
 }
 .brand-emoji { font-size: 28px; }
 .brand-name small { font-weight: 500; color: var(--text-muted); font-size: 12px; }
@@ -162,6 +169,6 @@ button {
 .content {
   flex: 1;
   padding: 32px 40px;
-  max-width: 1100px;
+  max-width: 1200px;
 }
 </style>
