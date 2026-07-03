@@ -85,3 +85,14 @@ export async function fetchReports() {
   if (!res.ok) throw new Error('No se pudieron cargar los reportes')
   return res.json()
 }
+
+// Cambia el estado de un reporte: 'pending' | 'reviewed' | 'resolved'
+export async function updateReportStatus(id, status) {
+  const res = await fetch(`${API_BASE_URL}/api/reports/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ status }),
+  })
+  if (!res.ok) throw new Error('No se pudo actualizar el reporte')
+  return res.json()
+}
