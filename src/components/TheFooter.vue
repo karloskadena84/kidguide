@@ -52,7 +52,6 @@
     }
   }
 
-  &__brand {}
 
   &__logo {
     font-family: $font-display;
