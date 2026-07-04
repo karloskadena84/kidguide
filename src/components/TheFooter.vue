@@ -6,12 +6,6 @@
         <p class="footer__tagline">Hecho con amor para familias locales.</p>
         <p class="footer__copy">© 2025 KidGuide Colombia</p>
       </div>
-      <nav class="footer__links">
-        <a href="#">Sobre nosotros</a>
-        <a href="#">Guía de Seguridad</a>
-        <a href="#">Contáctanos</a>
-        <a href="#">Términos</a>
-      </nav>
       <div class="footer__actions">
         <button class="footer__icon-btn" title="Compartir">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
