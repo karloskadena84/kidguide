@@ -48,21 +48,7 @@
           <!-- Formulario -->
           <form v-else class="report-form" @submit.prevent="submit">
 
-            <!-- Tipo de error -->
-            <div class="report-form__field">
-              <label class="report-form__label">¿Qué información está incorrecta?</label>
-              <div class="report-types">
-                <button
-                  v-for="t in REPORT_TYPES"
-                  :key="t.id"
-                  type="button"
-                  :class="['report-type', { 'report-type--active': form.type === t.id }]"
-                  @click="form.type = t.id"
-                >
-                  {{ t.icon }} {{ t.label }}
-                </button>
-              </div>
-            </div>
+            
 
             <!-- Info actual en la app -->
             <div class="report-form__info-box">
@@ -85,6 +71,22 @@
                 :placeholder="placeholder"
                 required
               />
+            </div>
+
+            <!-- Tipo de error -->
+            <div class="report-form__field">
+              <label class="report-form__label">¿Qué información está incorrecta?</label>
+              <div class="report-types">
+                <button
+                  v-for="t in REPORT_TYPES"
+                  :key="t.id"
+                  type="button"
+                  :class="['report-type', { 'report-type--active': form.type === t.id }]"
+                  @click="form.type = t.id"
+                >
+                  {{ t.icon }} {{ t.label }}
+                </button>
+              </div>
             </div>
 
             <!-- Fuente -->
