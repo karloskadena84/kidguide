@@ -96,3 +96,33 @@ export async function updateReportStatus(id, status) {
   if (!res.ok) throw new Error('No se pudo actualizar el reporte')
   return res.json()
 }
+
+// --- Destacado del día / Planes de hoy (Automático vs Manual) ---
+
+const settingsCache = new Map()
+
+// Público — lo consume el sitio para saber si debe usar el algoritmo
+// automático o mostrar lo que el admin eligió a mano.
+export async function fetchCitySettings(city) {
+  if (settingsCache.has(city)) return settingsCache.get(city)
+  const res = await fetch(`${API_BASE_URL}/api/settings/${city}`)
+  if (!res.ok) throw new Error(`No se pudo cargar la configuración de ${city}`)
+  const data = await res.json()
+  settingsCache.set(city, data)
+  return data
+}
+
+export function clearCitySettingsCache() {
+  settingsCache.clear()
+}
+
+// Protegido — solo el dashboard admin puede guardar cambios
+export async function updateCitySettings(city, settings) {
+  const res = await fetch(`${API_BASE_URL}/api/settings/${city}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(settings),
+  })
+  if (!res.ok) throw new Error('No se pudo guardar la configuración')
+  return res.json()
+}

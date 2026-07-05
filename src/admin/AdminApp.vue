@@ -13,6 +13,9 @@
           <button :class="{ active: tab === 'places' }" @click="tab = 'places'">
             📍 Lugares
           </button>
+          <button :class="{ active: tab === 'destacados' }" @click="tab = 'destacados'">
+            ⭐ Destacados
+          </button>
           <button :class="{ active: tab === 'reports' }" @click="tab = 'reports'">
             📨 Reportes
           </button>
@@ -26,6 +29,7 @@
 
       <main class="content">
         <PlacesView v-if="tab === 'places'" />
+        <DestacadosView v-else-if="tab === 'destacados'" />
         <ReportsView v-else-if="tab === 'reports'" />
       </main>
     </template>
@@ -36,6 +40,7 @@
 import { ref, onMounted } from 'vue'
 import LoginView from './views/LoginView.vue'
 import PlacesView from './views/PlacesView.vue'
+import DestacadosView from './views/DestacadosView.vue'
 import ReportsView from './views/ReportsView.vue'
 
 const TOKEN_KEY = 'kidguide_admin_token'
