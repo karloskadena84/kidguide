@@ -62,20 +62,9 @@
               </div>
             </div>
 
-            <!-- Información correcta -->
-            <div class="report-form__field">
-              <label class="report-form__label">¿Cuál es la información correcta? *</label>
-              <input
-                v-model="form.correct"
-                class="report-form__input"
-                :placeholder="placeholder"
-                required
-              />
-            </div>
-
             <!-- Tipo de error -->
             <div class="report-form__field">
-              <label class="report-form__label">¿Qué información está incorrecta?</label>
+              <label class="report-form__label"> 1 - ¿Qué información está incorrecta?</label>
               <div class="report-types">
                 <button
                   v-for="t in REPORT_TYPES"
@@ -89,9 +78,22 @@
               </div>
             </div>
 
+            <!-- Información correcta -->
+            <div class="report-form__field">
+              <label class="report-form__label"> 2 - ¿Cuál es la información correcta? *</label>
+              <input
+                v-model="form.correct"
+                class="report-form__input"
+                :placeholder="placeholder"
+                required
+              />
+            </div>
+
+           
+
             <!-- Fuente -->
             <div class="report-form__field">
-              <label class="report-form__label">¿Cómo lo sabes? (opcional)</label>
+              <label class="report-form__label"> 3 - ¿Cómo lo sabes? (opcional)</label>
               <input
                 v-model="form.source"
                 class="report-form__input"
