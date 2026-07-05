@@ -59,15 +59,22 @@ async function submit() {
   background: linear-gradient(160deg, #630ED4 0%, #9B4DFF 100%);
 }
 
+.login-wrap { padding: 16px; }
+
 .login-card {
   background: white;
   border-radius: 20px;
   padding: 40px 36px;
   width: 320px;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   gap: 14px;
   box-shadow: 0 20px 60px rgba(26, 18, 51, 0.3);
+}
+
+@media (max-width: 380px) {
+  .login-card { padding: 28px 22px; }
 }
 
 .logo { font-size: 40px; text-align: center; }

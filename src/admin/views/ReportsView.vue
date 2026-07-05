@@ -152,6 +152,7 @@ h1 { margin: 0 0 6px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em
   gap: 6px;
   margin-bottom: 20px;
   border-bottom: 1px solid var(--border);
+  overflow-x: auto;
 }
 .status-tabs button {
   border: none;
@@ -165,6 +166,8 @@ h1 { margin: 0 0 6px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em
   align-items: center;
   gap: 6px;
   margin-bottom: -1px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .status-tabs button.active {
   color: var(--primary);
@@ -253,5 +256,18 @@ h1 { margin: 0 0 6px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em
 }
 .action.ghost {
   color: var(--text-muted);
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  h1 { font-size: 22px; }
+
+  .card-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .card-actions { flex-wrap: wrap; }
+  .action { flex: 1; text-align: center; }
 }
 </style>

@@ -250,6 +250,7 @@ h1 { margin: 0 0 6px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em
   gap: 6px;
   margin-bottom: 24px;
   border-bottom: 1px solid var(--border);
+  overflow-x: auto;
 }
 .city-tabs button {
   border: none;
@@ -260,6 +261,8 @@ h1 { margin: 0 0 6px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em
   color: var(--text-muted);
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .city-tabs button.active { color: var(--primary); border-bottom-color: var(--primary); }
 
@@ -382,4 +385,27 @@ h2 { margin: 0 0 4px; font-size: 16px; font-weight: 800; }
 }
 .primary:disabled { opacity: 0.6; }
 .success-msg { color: var(--success); font-weight: 700; font-size: 13px; margin: 0; }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  h1 { font-size: 22px; }
+
+  .panel-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .mode-switch { align-self: flex-start; }
+
+  .today-item {
+    flex-wrap: wrap;
+  }
+  .today-item .name { flex-basis: 100%; order: 1; margin-top: 2px; }
+
+  .save-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .primary { width: 100%; }
+}
 </style>

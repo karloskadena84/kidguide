@@ -44,7 +44,8 @@
       <button class="ghost-link" @click="clearFilters">Limpiar filtros</button>
     </div>
 
-    <table v-if="!loading && filteredPlaces.length" class="table">
+    <div v-if="!loading && filteredPlaces.length" class="table-scroll">
+    <table class="table">
       <thead>
         <tr>
           <th>Lugar</th>
@@ -58,7 +59,8 @@
         <tr v-for="p in filteredPlaces" :key="p.id">
           <td>
             <div class="place-cell">
-              <span class="emoji-swatch" :style="{ background: categoryMeta(p.cat).bg }">{{ p.emoji || '📍' }}</span>
+              <img v-if="p.imageUrl" :src="p.imageUrl" :alt="p.name" class="photo-swatch" />
+              <span v-else class="emoji-swatch" :style="{ background: categoryMeta(p.cat).bg }">{{ p.emoji || '📍' }}</span>
               <div>
                 <div class="place-name">{{ p.name }}</div>
                 <div class="place-zone">{{ p.zone }} · {{ cityLabel(p.city) }}</div>
@@ -87,6 +89,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
 
     <PlaceFormModal
       v-if="showForm"
@@ -237,6 +240,7 @@ h1 { margin: 0 0 6px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em
   margin-bottom: 16px;
   border-bottom: 1px solid var(--border);
   padding-bottom: 0;
+  overflow-x: auto;
 }
 .city-tabs button {
   border: none;
@@ -250,6 +254,8 @@ h1 { margin: 0 0 6px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em
   align-items: center;
   gap: 6px;
   margin-bottom: -1px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .city-tabs button.active {
   color: var(--primary);
@@ -314,13 +320,17 @@ h1 { margin: 0 0 6px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em
   margin-top: 8px;
 }
 
+.table-scroll {
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  -webkit-overflow-scrolling: touch;
+}
 .table {
   width: 100%;
+  min-width: 640px; /* evita que las columnas se aplasten; en móvil se hace scroll horizontal */
   border-collapse: collapse;
   background: var(--surface);
-  border-radius: 14px;
-  overflow: hidden;
-  border: 1px solid var(--border);
 }
 .table th, .table td {
   text-align: left;
@@ -345,6 +355,13 @@ h1 { margin: 0 0 6px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em
   display: flex;
   align-items: center;
   gap: 12px;
+}
+.photo-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 .emoji-swatch {
   width: 36px;
@@ -393,4 +410,19 @@ h1 { margin: 0 0 6px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em
 
 .muted { color: var(--text-muted); font-size: 13px; }
 .error { color: var(--danger); }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .header-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .header-row .primary { width: 100%; }
+  h1 { font-size: 22px; }
+
+  .search-wrap { max-width: none; }
+
+  .actions { flex-wrap: wrap; }
+}
 </style>

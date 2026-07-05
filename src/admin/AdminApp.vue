@@ -117,6 +117,7 @@ button {
   display: flex;
   flex-direction: column;
   padding: 24px 16px;
+  flex-shrink: 0;
 }
 
 .brand {
@@ -145,6 +146,7 @@ button {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .sidebar nav button.active {
@@ -175,5 +177,67 @@ button {
   flex: 1;
   padding: 32px 40px;
   max-width: 1200px;
+  min-width: 0; /* evita que las tablas internas fuercen el ancho de la página */
+}
+
+/* ── Tablet: reduce paddings, el contenido sigue igual de estructura ── */
+@media (max-width: 1024px) {
+  .content { padding: 24px; }
+}
+
+/* ── Móvil: el sidebar pasa a ser una barra superior horizontal ── */
+@media (max-width: 860px) {
+  .admin-shell {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    padding: 12px 16px;
+    gap: 16px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .brand {
+    padding: 0;
+    flex-shrink: 0;
+  }
+  .brand-name br { display: none; }
+  .brand-name small { display: none; } /* "Panel de administración" sobra en la barra angosta */
+
+  .sidebar nav {
+    flex-direction: row;
+    flex: 1;
+    overflow-x: auto;
+    gap: 4px;
+  }
+  .sidebar nav button {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .sidebar-footer {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding-top: 0;
+    border-top: none;
+    flex-shrink: 0;
+  }
+  .sidebar-footer span { display: none; } /* el correo no cabe en la barra angosta */
+  .logout { padding: 8px 10px; font-size: 12px; }
+
+  .content { padding: 18px; }
+}
+
+@media (max-width: 480px) {
+  .content { padding: 14px; }
 }
 </style>

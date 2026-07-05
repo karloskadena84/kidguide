@@ -4,6 +4,38 @@
       <h2>{{ place ? 'Editar lugar' : 'Nuevo lugar' }}</h2>
 
       <form @submit.prevent="submit">
+        <div class="photo-section">
+          <label class="photo-label">Foto real del lugar</label>
+          <div class="photo-row">
+            <div class="photo-preview">
+              <img v-if="form.imageUrl" :src="form.imageUrl" alt="Foto del lugar" />
+              <span v-else class="photo-placeholder">{{ form.emoji || '📍' }}</span>
+            </div>
+            <div class="photo-controls">
+              <input
+                ref="fileInput"
+                type="file"
+                accept="image/*"
+                class="photo-input"
+                @change="onFileSelected"
+              />
+              <button type="button" class="photo-btn" :disabled="uploading" @click="fileInput?.click()">
+                {{ uploading ? 'Subiendo…' : (form.imageUrl ? 'Cambiar foto' : 'Subir foto') }}
+              </button>
+              <button
+                v-if="form.imageUrl"
+                type="button"
+                class="photo-btn photo-btn--remove"
+                @click="removePhoto"
+              >
+                Quitar foto
+              </button>
+              <p v-if="uploadError" class="photo-error">{{ uploadError }}</p>
+              <p v-else class="photo-hint">JPG o PNG, se optimiza automáticamente.</p>
+            </div>
+          </div>
+        </div>
+
         <div class="grid">
           <label>Nombre
             <input v-model="form.name" required />
@@ -102,9 +134,15 @@ const emit = defineEmits(['close', 'saved'])
 const saving = ref(false)
 const error = ref('')
 
+const fileInput = ref(null)
+const uploading = ref(false)
+const uploadError = ref('')
+
 const form = reactive({
   name: props.place?.name || '',
   emoji: props.place?.emoji || '',
+  imageUrl: props.place?.imageUrl || '',
+  imagePublicId: props.place?.imagePublicId || '',
   city: props.place?.city || 'medellin',
   cat: props.place?.cat || 'parques',
   zone: props.place?.zone || '',
@@ -122,6 +160,31 @@ const form = reactive({
 })
 
 const tagsInput = ref((props.place?.tags || []).join(', '))
+
+async function onFileSelected(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+
+  uploading.value = true
+  uploadError.value = ''
+  try {
+    const { url, publicId } = await uploadImageToCloudinary(file)
+    form.imageUrl = url
+    form.imagePublicId = publicId
+    form.imageSource = 'manual'
+  } catch (err) {
+    uploadError.value = err.message || 'No se pudo subir la imagen.'
+  } finally {
+    uploading.value = false
+    if (fileInput.value) fileInput.value.value = '' // permite volver a elegir el mismo archivo
+  }
+}
+
+function removePhoto() {
+  form.imageUrl = ''
+  form.imagePublicId = ''
+  form.imageSource = ''
+}
 
 async function submit() {
   saving.value = true
@@ -167,6 +230,46 @@ async function submit() {
   box-shadow: 0 24px 60px rgba(26, 18, 51, 0.25);
 }
 h2 { margin: 0 0 16px; font-size: 19px; font-weight: 800; }
+
+.photo-section { margin-bottom: 16px; }
+.photo-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text, #333);
+  margin-bottom: 8px;
+}
+.photo-row { display: flex; gap: 14px; align-items: center; }
+.photo-preview {
+  width: 84px;
+  height: 84px;
+  border-radius: 12px;
+  background: var(--bg, #FAF9FC);
+  border: 1px solid var(--border, #E3E3EF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+.photo-placeholder { font-size: 34px; }
+.photo-controls { flex: 1; }
+.photo-input { display: none; }
+.photo-btn {
+  border: 1px solid var(--border, #E3E3EF);
+  background: white;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--primary, #630ED4);
+  margin-right: 8px;
+}
+.photo-btn:disabled { opacity: 0.6; }
+.photo-btn--remove { color: var(--danger, #DC2626); }
+.photo-hint { font-size: 11px; color: var(--text-muted, #6B6B85); margin: 6px 0 0; }
+.photo-error { font-size: 11px; color: var(--danger, #DC2626); margin: 6px 0 0; }
 
 .grid {
   display: grid;
@@ -225,4 +328,20 @@ input:focus, select:focus, textarea:focus {
 }
 
 .error { color: var(--danger, #DC2626); font-size: 13px; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .overlay { padding: 0; align-items: flex-end; }
+  .modal {
+    max-width: none;
+    max-height: 92vh;
+    border-radius: 18px 18px 0 0;
+    padding: 20px;
+  }
+  .grid { grid-template-columns: 1fr; }
+  .span-2 { grid-column: span 1; }
+  .photo-row { flex-wrap: wrap; }
+  .footer { flex-direction: column-reverse; }
+  .footer button { width: 100%; }
+}
 </style>
