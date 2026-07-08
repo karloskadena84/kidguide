@@ -128,6 +128,9 @@
 
     <TheFooter />
 
+    <!-- Botón flotante de WhatsApp — solo visible en móvil -->
+    <WhatsAppFloatingButton />
+
     <WeatherBackground :theme="weatherTheme" />
 
     <PlaceModal
@@ -156,6 +159,7 @@ import SupportBanner      from '@/components/SupportBanner.vue'
 import FeaturedDailyCard  from '@/components/FeaturedDailyCard.vue'
 import WeatherBackground  from '@/components/WeatherBackground.vue'
 import WeatherBanner      from '@/components/WeatherBanner.vue'
+import WhatsAppFloatingButton from '@/components/WhatsAppFloatingButton.vue'
 
 const activeTab     = ref('explorar')
 const selectedPlace = ref(null)
