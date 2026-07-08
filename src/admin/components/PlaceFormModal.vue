@@ -6,11 +6,22 @@
       <form @submit.prevent="submit">
         <div class="photo-section">
           <label class="photo-label">Foto real del lugar</label>
-          <div class="photo-row">
+          <div
+            class="photo-dropzone"
+            :class="{ 'is-dragging': isDragging, 'has-image': !!form.imageUrl }"
+            tabindex="0"
+            @click="!uploading && fileInput?.click()"
+            @keydown.enter="!uploading && fileInput?.click()"
+            @paste="onPaste"
+            @dragover.prevent="isDragging = true"
+            @dragleave.prevent="isDragging = false"
+            @drop.prevent="onDrop"
+          >
             <div class="photo-preview">
               <img v-if="form.imageUrl" :src="form.imageUrl" alt="Foto del lugar" />
               <span v-else class="photo-placeholder">{{ form.emoji || '📍' }}</span>
             </div>
+
             <div class="photo-controls">
               <input
                 ref="fileInput"
@@ -19,17 +30,26 @@
                 class="photo-input"
                 @change="onFileSelected"
               />
-              <button type="button" class="photo-btn" :disabled="uploading" @click="fileInput?.click()">
-                {{ uploading ? 'Subiendo…' : (form.imageUrl ? 'Cambiar foto' : 'Subir foto') }}
-              </button>
-              <button
-                v-if="form.imageUrl"
-                type="button"
-                class="photo-btn photo-btn--remove"
-                @click="removePhoto"
-              >
-                Quitar foto
-              </button>
+
+              <p class="photo-instructions">
+                <strong>{{ uploading ? 'Subiendo…' : 'Arrastra una foto aquí' }}</strong>
+                <span v-if="!uploading">o pégala con <kbd>{{ pasteShortcutLabel }}</kbd>, o haz click para elegir un archivo</span>
+              </p>
+
+              <div class="photo-buttons">
+                <button type="button" class="photo-btn" :disabled="uploading" @click.stop="fileInput?.click()">
+                  {{ form.imageUrl ? 'Cambiar foto' : 'Subir foto' }}
+                </button>
+                <button
+                  v-if="form.imageUrl"
+                  type="button"
+                  class="photo-btn photo-btn--remove"
+                  @click.stop="removePhoto"
+                >
+                  Quitar foto
+                </button>
+              </div>
+
               <p v-if="uploadError" class="photo-error">{{ uploadError }}</p>
               <p v-else class="photo-hint">JPG o PNG, se optimiza automáticamente.</p>
             </div>
@@ -127,6 +147,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { createPlace, updatePlace } from '@/services/placesApi'
+import { uploadImageToCloudinary } from '@/config/cloudinary'
 
 const props = defineProps({ place: { type: Object, default: null } })
 const emit = defineEmits(['close', 'saved'])
@@ -160,10 +181,16 @@ const form = reactive({
 })
 
 const tagsInput = ref((props.place?.tags || []).join(', '))
+const isDragging = ref(false)
 
-async function onFileSelected(e) {
-  const file = e.target.files?.[0]
-  if (!file) return
+// "⌘V" en Mac, "Ctrl+V" en el resto — para que la instrucción en pantalla sea correcta
+const pasteShortcutLabel = navigator.platform?.toUpperCase().includes('MAC') ? '⌘V' : 'Ctrl+V'
+
+async function uploadFile(file) {
+  if (!file || !file.type?.startsWith('image/')) {
+    uploadError.value = 'Eso no parece ser una imagen. Prueba con un JPG o PNG.'
+    return
+  }
 
   uploading.value = true
   uploadError.value = ''
@@ -176,8 +203,26 @@ async function onFileSelected(e) {
     uploadError.value = err.message || 'No se pudo subir la imagen.'
   } finally {
     uploading.value = false
-    if (fileInput.value) fileInput.value.value = '' // permite volver a elegir el mismo archivo
   }
+}
+
+function onFileSelected(e) {
+  const file = e.target.files?.[0]
+  uploadFile(file)
+  if (fileInput.value) fileInput.value.value = '' // permite volver a elegir el mismo archivo
+}
+
+function onPaste(e) {
+  const item = Array.from(e.clipboardData?.items || []).find((it) => it.type?.startsWith('image/'))
+  if (!item) return // no había una imagen en el portapapeles; deja que el paste normal siga su curso
+  e.preventDefault()
+  uploadFile(item.getAsFile())
+}
+
+function onDrop(e) {
+  isDragging.value = false
+  const file = e.dataTransfer?.files?.[0]
+  uploadFile(file)
 }
 
 function removePhoto() {
@@ -239,7 +284,30 @@ h2 { margin: 0 0 16px; font-size: 19px; font-weight: 800; }
   color: var(--text, #333);
   margin-bottom: 8px;
 }
-.photo-row { display: flex; gap: 14px; align-items: center; }
+
+.photo-dropzone {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border: 1.5px dashed var(--border, #E3E3EF);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.photo-dropzone:hover,
+.photo-dropzone:focus-visible {
+  border-color: var(--primary, #630ED4);
+  background: var(--primary-tint, #F3ECFC);
+  outline: none;
+}
+.photo-dropzone.is-dragging {
+  border-color: var(--primary, #630ED4);
+  border-style: solid;
+  background: var(--primary-tint, #F3ECFC);
+}
+.photo-dropzone.has-image { border-style: solid; }
+
 .photo-preview {
   width: 84px;
   height: 84px;
@@ -254,22 +322,42 @@ h2 { margin: 0 0 16px; font-size: 19px; font-weight: 800; }
 }
 .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
 .photo-placeholder { font-size: 34px; }
-.photo-controls { flex: 1; }
+
+.photo-controls { flex: 1; min-width: 0; }
 .photo-input { display: none; }
+
+.photo-instructions {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  color: var(--text, #333);
+  line-height: 1.4;
+}
+.photo-instructions strong { display: block; font-size: 13px; }
+.photo-instructions span { color: var(--text-muted, #6B6B85); }
+.photo-instructions kbd {
+  background: var(--bg, #FAF9FC);
+  border: 1px solid var(--border, #E3E3EF);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.photo-buttons { display: flex; gap: 8px; margin-bottom: 6px; }
 .photo-btn {
   border: 1px solid var(--border, #E3E3EF);
   background: white;
   border-radius: 8px;
-  padding: 8px 14px;
+  padding: 7px 14px;
   font-size: 12.5px;
   font-weight: 700;
   color: var(--primary, #630ED4);
-  margin-right: 8px;
 }
 .photo-btn:disabled { opacity: 0.6; }
 .photo-btn--remove { color: var(--danger, #DC2626); }
-.photo-hint { font-size: 11px; color: var(--text-muted, #6B6B85); margin: 6px 0 0; }
-.photo-error { font-size: 11px; color: var(--danger, #DC2626); margin: 6px 0 0; }
+.photo-hint { font-size: 11px; color: var(--text-muted, #6B6B85); margin: 0; }
+.photo-error { font-size: 11px; color: var(--danger, #DC2626); margin: 0; }
 
 .grid {
   display: grid;
@@ -340,7 +428,7 @@ input:focus, select:focus, textarea:focus {
   }
   .grid { grid-template-columns: 1fr; }
   .span-2 { grid-column: span 1; }
-  .photo-row { flex-wrap: wrap; }
+  .photo-dropzone { flex-wrap: wrap; }
   .footer { flex-direction: column-reverse; }
   .footer button { width: 100%; }
 }

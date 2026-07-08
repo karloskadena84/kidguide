@@ -3,11 +3,11 @@
     <div class="modal-overlay" @click.self="$emit('close')">
       <div class="modal fade-up">
         <!-- Header -->
-        <div class="modal__header" :style="{ background: gradient }">
+        <div class="modal__header" :style="headerStyle">
           <button class="modal__close" @click="$emit('close')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
-          <div class="modal__emoji">{{ place.emoji }}</div>
+          <div v-if="!place.imageUrl" class="modal__emoji">{{ place.emoji }}</div>
           <h2 class="modal__title">{{ place.name }}</h2>
           <p class="modal__zone">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
@@ -98,6 +98,17 @@ defineEmits(['close'])
 
 const cat         = computed(() => getCat(props.place.cat))
 const gradient    = computed(() => `linear-gradient(145deg, ${cat.value.color}DD, ${cat.value.color}99)`)
+const headerStyle = computed(() => {
+  if (props.place.imageUrl) {
+    // Foto real de fondo + degradado oscuro encima para que el texto blanco siga siendo legible
+    return {
+      backgroundImage: `linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.55)), url(${props.place.imageUrl})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    }
+  }
+  return { background: gradient.value }
+})
 const isOpenToday = computed(() => props.place.days.includes(props.today))
 const openMaps    = () => window.open(`https://maps.google.com/?q=${props.place.coords[0]},${props.place.coords[1]}`, '_blank')
 </script>

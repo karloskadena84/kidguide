@@ -2,8 +2,15 @@
   <article class="card" @click="$emit('select', place)">
     <!-- ── Imagen / gradiente ── -->
     <div class="card__visual" :style="{ background: gradient }">
-      <!-- Emoji centrado como visual principal -->
-      <span class="card__emoji">{{ place.emoji }}</span>
+      <img
+        v-if="place.imageUrl"
+        :src="place.imageUrl"
+        :alt="place.name"
+        class="card__photo"
+        loading="lazy"
+      />
+      <!-- Emoji centrado como respaldo mientras el lugar no tenga foto -->
+      <span v-else class="card__emoji">{{ place.emoji }}</span>
 
       <!-- Badges sobre la imagen -->
       <div class="card__badges">
@@ -99,6 +106,14 @@ const truncate = (str, n) => str?.length > n ? str.slice(0, n) + '…' : str
     justify-content: center;
 
     @media (max-width: $bp-md) { height: 140px; }
+  }
+
+  &__photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   &__emoji {

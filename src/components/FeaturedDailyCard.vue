@@ -12,7 +12,14 @@
     <div class="featured__card" :style="cardBorder" @click="$emit('select', place)">
 
       <div class="featured__visual" :style="visualBg">
-        <span class="featured__emoji">{{ place.emoji }}</span>
+        <img
+          v-if="place.imageUrl"
+          :src="place.imageUrl"
+          :alt="place.name"
+          class="featured__photo"
+          loading="lazy"
+        />
+        <span v-else class="featured__emoji">{{ place.emoji }}</span>
 
         <div class="featured__badges">
           <span v-if="isOpenToday" class="featured__badge featured__badge--open">Abierto hoy</span>
@@ -184,6 +191,14 @@ const ctaStyle = computed(() => ({
     display: flex; align-items: center; justify-content: center;
     min-height: 210px;
     @media (max-width: $bp-md) { min-height: 160px; }
+  }
+
+  &__photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   &__emoji {
