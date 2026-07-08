@@ -6,9 +6,11 @@
       :today-count="todayCount"
       :total-free="totalFree"
       :total-places="totalPlaces"
+      :result-count="activeList.length"
       :today="TODAY"
       :active-city="activeCity"
       @city-change="onCityChange"
+      @do-search="scrollToResults"
     />
 
     <main class="main-content">
@@ -18,6 +20,7 @@
 
         <!-- BANNER DE CLIMA -->
         <WeatherBanner
+          v-if="!isSearching"
           :meta="weatherMeta()"
           :title="cityName ? weatherTitle() : ''"
           :subtext="cityName ? weatherSub() : ''"
@@ -27,16 +30,17 @@
 
         <!-- DESTACADO DEL DÍA -->
         <FeaturedDailyCard
+          v-if="!isSearching"
           :place="todayFeaturedCard"
           :today="TODAY"
           @select="openModal"
         />
 
         <!-- CTA HOY -->
-        <TodayCTA :places="todayPlaces" :today="TODAY" @select="openModal" />
+        <TodayCTA v-if="!isSearching" :places="todayPlaces" :today="TODAY" @select="openModal" />
 
         <!-- VAKI SUPPORT -->
-        <SupportBanner />
+        <SupportBanner v-if="!isSearching" />
 
         <!-- Pills de categoría -->
         <div class="scroll-x cat-pills">
@@ -52,9 +56,9 @@
         </div>
 
         <!-- Section header + filtros inline -->
-        <div class="section-header">
+        <div class="section-header" ref="resultsAnchor">
           <h2 class="section-header__title">
-            Explora todos los planes
+            {{ isSearching ? `Resultados para "${search}"` : 'Explora todos los planes' }}
             <span class="section-header__count">{{ activeList.length }}</span>
           </h2>
           <div class="section-header__filters">
@@ -180,6 +184,16 @@ const {
 // Con filtros activos → orden normal para no confundir al usuario
 const activeList    = computed(() => hasFilters.value ? filtered.value : dailyShuffled.value)
 const visiblePlaces = computed(() => activeList.value.slice(0, visibleCount.value))
+
+// Mientras el usuario está escribiendo una búsqueda, ocultamos las secciones
+// de "descubrimiento" (clima, destacado, hoy, apoyo) para que los resultados
+// queden mucho más cerca del buscador — así se siente que la búsqueda sí hizo algo.
+const isSearching = computed(() => search.value.trim().length > 0)
+
+const resultsAnchor = ref(null)
+const scrollToResults = () => {
+  resultsAnchor.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 
 // Reset paginación al cambiar filtros o ciudad
 watch([() => activeCity.value, () => activeList.value], () => {

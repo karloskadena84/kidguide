@@ -54,7 +54,9 @@
             </Transition>
           </div>
 
-         
+          <button class="navbar__icon-btn" title="Buscar" @click="focusSearch">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </button>
         </div>
       </div>
     </nav>
@@ -77,12 +79,21 @@
               ref="searchInput"
               :value="search"
               @input="$emit('update:search', $event.target.value)"
+              @keyup.enter="$emit('do-search')"
               class="hero__search-input"
               placeholder="Nombre, zona o actividad..."
               type="search"
             />
-            <button class="hero__search-btn">Buscar</button>
+            <button class="hero__search-btn" @click="$emit('do-search')">Buscar</button>
           </div>
+
+          <!-- Feedback inmediato: aparece apenas hay texto, sin tener que hacer scroll -->
+          <Transition name="fade">
+            <button v-if="search" class="hero__search-feedback" @click="$emit('do-search')">
+              {{ resultCount }} resultado{{ resultCount === 1 ? '' : 's' }} para "{{ search }}"
+              <span class="hero__search-feedback-arrow">Ver resultados ↓</span>
+            </button>
+          </Transition>
         </div>
 
         <div class="hero__tabs">
@@ -108,10 +119,11 @@ defineProps({
   todayCount:  { type: Number,  default: 0 },
   totalFree:   { type: Number,  default: 0 },
   totalPlaces: { type: Number,  default: 0 },
+  resultCount: { type: Number,  default: 0 },
   today:       { type: Number,  required: true },
 })
 
-const emit = defineEmits(['update:search', 'update:tab', 'city-change'])
+const emit = defineEmits(['update:search', 'update:tab', 'city-change', 'do-search'])
 
 const searchInput = ref(null)
 const cityOpen    = ref(false)
@@ -454,6 +466,34 @@ const TABS = [
     &:hover { filter: brightness(1.08); }
     @media (max-width: $bp-md) { padding: 8px 14px; font-size: 13px; }
   }
+
+  &__search-feedback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 10px auto 0;
+    padding: 7px 16px;
+    max-width: fit-content;
+    background: rgba(255,255,255,0.16);
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: $r-pill;
+    color: $white;
+    font-size: 12.5px;
+    font-family: $font-body;
+    font-weight: 600;
+    cursor: pointer;
+    transition: $t-fast;
+    &:hover { background: rgba(255,255,255,0.26); }
+  }
+  &__search-feedback-arrow {
+    font-weight: 800;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+  .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(-4px); }
 
   &__tabs {
     display: flex;
