@@ -89,11 +89,15 @@
             <input v-model="form.age" placeholder="ej: 2-12" />
           </label>
 
-          <label>Latitud
-            <input v-model.number="form.lat" type="number" step="any" />
-          </label>
-          <label>Longitud
-            <input v-model.number="form.lng" type="number" step="any" />
+          <label class="span-2">Ubicación exacta
+            <LocationMapPicker
+              :lat="form.lat"
+              :lng="form.lng"
+              :city="form.city"
+              @update:lat="form.lat = $event"
+              @update:lng="form.lng = $event"
+              @use-address="form.address = $event"
+            />
           </label>
 
           <label class="span-2">Dirección
@@ -148,6 +152,7 @@
 import { ref, reactive } from 'vue'
 import { createPlace, updatePlace } from '@/services/placesApi'
 import { uploadImageToCloudinary } from '@/config/cloudinary'
+import LocationMapPicker from './LocationMapPicker.vue'
 
 const props = defineProps({ place: { type: Object, default: null } })
 const emit = defineEmits(['close', 'saved'])
